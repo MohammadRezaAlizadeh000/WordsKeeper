@@ -23,6 +23,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.mra.wordskeeper.model.WordEntity
 import com.mra.wordskeeper.utils.*
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 var wordState: MutableState<String>? = null
@@ -82,17 +83,18 @@ fun AddNewWordScreen(
 
         }
 
+        val insertResult = viewModel.insertResultFlow.collectAsState()
+
         Button(
             onClick = {
 
                 wordState?.let {
                     if (it.value.isNotEmpty()) {
-                        if (viewModel.addWordToDB(
-                                WordEntity(
-                                    1, it.value, descriptionState?.value
-                                )
-                            )
-                        ) {
+                        viewModel.addWordToDB(
+                            WordEntity(word = it.value, description = descriptionState?.value ?: "")
+                        )
+
+                        if (insertResult.value) {
                             context.toast(WORD_ADDED_SUCCESSFULLY)
                             navController?.popBackStack()
                         } else
